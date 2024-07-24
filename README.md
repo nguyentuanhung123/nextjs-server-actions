@@ -244,3 +244,128 @@ const ClientPageExample = () => {
 
 export default ClientPageExample
 ```
+
+### Thực hành Server Component
+
+- B1: Tải shadcn/ui
+- B2: Tạo thư mục add-new-user bên trong thư mục components được tạo 
+- B3: Tạo file index.js bên trong và chỉnh sửa
+
+```jsx
+
+const AddNewUser = () => {
+
+    const [openPopup, setOpenPopup] = useState(false)
+    return (
+        <div>
+            <Button onClick={() => setOpenPopup(true)}>Add New User</Button>
+            <Dialog open={openPopup} onOpenChange={setOpenPopup}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Add New User</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="name" className="text-right">
+                                Name
+                            </Label>
+                            <Input
+                                id="name"
+                                defaultValue="Pedro Duarte"
+                                className="col-span-3"
+                            />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="username" className="text-right">
+                                Username
+                            </Label>
+                            <Input
+                                id="username"
+                                defaultValue="@peduarte"
+                                className="col-span-3"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button type="submit">Save changes</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+    )
+}
+
+export default AddNewUser;
+```
+
+- B4: Tạo thư mục utils (bên trong thư mục src) và file index.js bên trong nó
+
+```jsx
+export const addNewFormControls = [
+    {
+        name: 'firstName',
+        label: 'First Name',
+        placeholder: 'Enter your first name',
+    },
+    {
+        name: 'lastName',
+        label: 'Last Name',
+        placeholder: 'Enter your last name',
+    },
+    {
+        name: 'email',
+        label: 'Email',
+        placeholder: 'Enter your email',
+    },
+    {
+        name: 'address',
+        label: 'Address',
+        placeholder: 'Enter your address',
+    }
+]
+```
+
+- B5: Sửa lại dialog
+
+```jsx
+import { addNewFormControls } from "@/utils";
+
+const AddNewUser = () => {
+
+    const [openPopup, setOpenPopup] = useState(false)
+    return (
+        <div>
+            <Button onClick={() => setOpenPopup(true)}>Add New User</Button>
+            <Dialog open={openPopup} onOpenChange={setOpenPopup}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Add New User</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        {
+                            addNewFormControls.map((controlItem) => (
+                                <div className="mb-5" key={controlItem.name}>
+                                    <Label htmlFor={controlItem.name} className="text-right">
+                                        {controlItem.label}
+                                    </Label>
+                                    <Input
+                                        id={controlItem.name}
+                                        name={controlItem.name}
+                                        placeholder={controlItem.placeholder}
+                                        className="col-span-3"
+                                    />
+                                </div>
+                            ))
+                        }
+                    </div>
+                    <DialogFooter>
+                        <Button type="submit">Save changes</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+    )
+}
+
+export default AddNewUser;
+```

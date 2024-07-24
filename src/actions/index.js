@@ -2,6 +2,7 @@
 
 import connectToDB from "@/database"
 import User from "@/models/user";
+import { revalidatePath } from "next/cache";
 
 // export const fetchListOfProducts = async () => {
 //     const res = await fetch('https://dummyjson.com/products');
@@ -11,7 +12,7 @@ import User from "@/models/user";
 // }
 
 // add new user action
-export async function addNewUserAction(formData) {
+export async function addNewUserAction(formData, pathToRevalidate) {
     await connectToDB();
 
     try {
@@ -19,6 +20,7 @@ export async function addNewUserAction(formData) {
 
         const newlyCreatedUser = await User.create(formData);
         if(newlyCreatedUser) {
+            revalidatePath(pathToRevalidate);
             return {
                 success: true,
                 message: 'User added successfully'
@@ -39,6 +41,30 @@ export async function addNewUserAction(formData) {
 }
 
 // fetch users actios
+export async function fetchUsersAction() {
+    await connectToDB();
+    try {
+        const listOfUsers = await User.find({});
+        if(listOfUsers) {
+            return {        
+                success: true,  
+                data: JSON.parse(JSON.stringify(listOfUsers))
+            }   
+        } else {
+            return {
+                success: false,
+                message: 'Some error occured. Please try again.'
+            }
+        }
+    }
+    catch(error) {
+        console.log(error);
+        return {
+            success: false,
+            message: 'Some error occured. Please try again.'
+        }
+    }
+}
 
 // edit a user action
 

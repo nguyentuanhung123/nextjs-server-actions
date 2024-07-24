@@ -618,3 +618,141 @@ console.log(isValid); // false
     </DialogFooter>
 </form>
 ```
+
+## Giải thích: JSON.parse(JSON.stringify(listOfUsers))
+
+- Đoạn mã này sử dụng hai hàm JSON.parse và JSON.stringify để tạo một bản sao sâu (deep copy) của đối tượng hoặc mảng listOfUsers. Hãy cùng phân tích chi tiết từng phần và lý do tại sao bạn có thể sử dụng cách này.
+
+# Giải Thích Chi Tiết
+
+1. JSON.stringify(listOfUsers)
+- JSON.stringify: Chuyển đổi đối tượng JavaScript hoặc mảng listOfUsers thành chuỗi JSON.
+- Ví dụ: { name: 'John', age: 30 } sẽ trở thành {"name":"John","age":30}.
+
+2. JSON.parse(...)
+JSON.parse: Phân tích chuỗi JSON và chuyển đổi nó thành đối tượng hoặc mảng JavaScript.
+Ví dụ: {"name":"John","age":30} sẽ trở thành { name: 'John', age: 30 }.
+
+# Kết Hợp Lại
+- JSON.parse(JSON.stringify(listOfUsers)): Kết hợp hai bước trên để tạo một bản sao sâu của listOfUsers.
+- Bước 1: Chuyển đổi listOfUsers thành chuỗi JSON.
+- Bước 2: Phân tích chuỗi JSON và chuyển đổi lại thành đối tượng hoặc mảng JavaScript.
+
+## Lý Do Sử Dụng
+
+# Tạo Bản Sao Sâu (Deep Copy):
+
+- Đối với các đối tượng hoặc mảng có cấu trúc lồng nhau, việc sao chép theo kiểu thông thường (Object.assign hoặc spread operator) chỉ tạo ra bản sao nông (shallow copy), tức là các đối tượng con vẫn giữ nguyên tham chiếu.
+- JSON.parse(JSON.stringify(...)) tạo ra một bản sao sâu, tức là toàn bộ cấu trúc đối tượng được sao chép hoàn toàn độc lập.
+
+# Đơn Giản:
+
+- Đây là một cách nhanh chóng và đơn giản để tạo bản sao sâu mà không cần phải viết thêm hàm sao chép.
+
+# Ví Dụ Minh Họa
+
+```jsx
+const listOfUsers = [
+    { name: 'John', age: 30, address: { city: 'New York', zip: '10001' } },
+    { name: 'Jane', age: 25, address: { city: 'San Francisco', zip: '94101' } }
+];
+
+const copiedListOfUsers = JSON.parse(JSON.stringify(listOfUsers));
+
+// Thay đổi giá trị trong bản sao và kiểm tra bản gốc
+copiedListOfUsers[0].name = 'Johnny';
+copiedListOfUsers[0].address.city = 'Los Angeles';
+
+console.log(listOfUsers[0].name); // Output: 'John'
+console.log(listOfUsers[0].address.city); // Output: 'New York'
+
+console.log(copiedListOfUsers[0].name); // Output: 'Johnny'
+console.log(copiedListOfUsers[0].address.city); // Output: 'Los Angeles'
+```
+
+# Hạn Chế
+
+- Chỉ xử lý JSON hợp lệ:
+
+- Các đối tượng hoặc mảng chứa hàm, undefined, Symbol, và các kiểu dữ liệu không thể chuyển đổi sang JSON sẽ bị mất hoặc không được sao chép chính xác.
+
+```jsx
+const obj = {
+    a: undefined,
+    b: function() {},
+    c: Symbol('symbol')
+};
+
+const copiedObj = JSON.parse(JSON.stringify(obj));
+console.log(copiedObj); // Output: { c: null }
+```
+
+# Kết Luận
+- Việc sử dụng JSON.parse(JSON.stringify(listOfUsers)) là một cách đơn giản và hiệu quả để tạo bản sao sâu của đối tượng hoặc mảng trong nhiều trường hợp. Tuy nhiên, cần lưu ý đến các hạn chế liên quan đến kiểu dữ liệu và hiệu suất khi áp dụng trong các trường hợp cụ thể.
+
+### Fix bug: Khi ta thêm mới một user nó mới chỉ cập nhật ở database mà không hiện lên màn hình.
+- Lý do: Chưa revalidating this path
+- Giải pháp: We need to revalidate the path
+- B1: Sửa lại hàm handleAddNewUserAction trong thư mục add-new-user
+
+- Ban đầu:
+
+```jsx
+const handleAddNewUserAction = async () => {
+    const result = await addNewUserAction(addNewUserFormData);
+    console.log(result);
+    setOpenPopup(false);
+    setAddNewUserFormData(addNewUserFormInitialState);
+}
+```
+
+- Sửa lại thành:
+
+```jsx
+const handleAddNewUserAction = async () => {
+    const result = await addNewUserAction(addNewUserFormData, '/user-management');
+    console.log(result);
+    setOpenPopup(false);
+    setAddNewUserFormData(addNewUserFormInitialState);
+}
+```
+
+- B2: Sửa lại hàm addNewUserAction trong thư mục actions
+
+- Ban đầu
+
+```jsx
+export async function addNewUserAction(formData) {}
+```
+
+- Sửa lại thành:
+
+```jsx
+export async function addNewUserAction(formData, pathToRevalidate) {
+    await connectToDB();
+
+    try {
+        // validate data using joi/ other packages you can use
+
+        const newlyCreatedUser = await User.create(formData);
+        if(newlyCreatedUser) {
+            revalidatePath(pathToRevalidate); // thêm ở đây
+            return {
+                success: true,
+                message: 'User added successfully'
+            }
+        } else {
+            return {
+                success: false,
+                message: 'Some error occured. Please try again.'
+            }
+        }
+    } catch (error) {
+        console.log(error);
+        return {
+            success: false,
+            message: 'Some error occured. Please try again.'
+        }
+    }
+}
+```

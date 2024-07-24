@@ -306,21 +306,25 @@ export const addNewFormControls = [
         name: 'firstName',
         label: 'First Name',
         placeholder: 'Enter your first name',
+        type: 'input'
     },
     {
         name: 'lastName',
         label: 'Last Name',
         placeholder: 'Enter your last name',
+        type: 'input'
     },
     {
         name: 'email',
         label: 'Email',
         placeholder: 'Enter your email',
+        type: 'email'
     },
     {
         name: 'address',
         label: 'Address',
         placeholder: 'Enter your address',
+        type: 'input'
     }
 ]
 ```
@@ -353,6 +357,7 @@ const AddNewUser = () => {
                                         name={controlItem.name}
                                         placeholder={controlItem.placeholder}
                                         className="col-span-3"
+                                        type={controlItem.type}
                                     />
                                 </div>
                             ))
@@ -368,4 +373,248 @@ const AddNewUser = () => {
 }
 
 export default AddNewUser;
+```
+
+- B6: Bổ sung ở utils
+
+```jsx
+export const addNewUserFormInitialState = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    address: ''
+}
+```
+
+- B7: Bổ sung state:
+
+```jsx
+const [addNewUserFormData, setAddNewUserFormData] = useState(addNewUserFormInitialState);
+```
+
+- B8: Sửa lại Input
+
+```jsx
+<Input
+    id={controlItem.name}
+    name={controlItem.name}
+    placeholder={controlItem.placeholder}
+    className="col-span-3"
+    type={controlItem.type}
+    value={addNewUserFormData[controlItem.name]}
+    onChange={(event) => 
+        setAddNewUserFormData({
+            ...addNewUserFormData,
+            [controlItem.name]: event.target.value
+        })
+    }
+/>
+```
+
+- B9: Sửa lại khi đóng mở Popup
+
+- Ban đầu
+
+```jsx
+<Dialog open={openPopup} onOpenChange={setOpenPopup}></Dialog>
+```
+
+- Sửa lại
+
+```jsx
+<Dialog open={openPopup} onOpenChange={() => {
+    setOpenPopup(false);
+    setAddNewUserFormData(addNewUserFormInitialState);
+}}></Dialog>
+```
+
+### Giải thích về:  Object.keys(addNewUserFormData).map((key) => addNewUserFormData[key].trim() !== '')
+
+- Đoạn mã này sẽ kiểm tra từng giá trị trong đối tượng addNewUserFormData để xem liệu chúng có phải là chuỗi không rỗng sau khi đã được trim hay không. Hãy cùng giải thích chi tiết từng phần của đoạn mã này:
+
+- Object.keys(obj): Trả về một mảng chứa tất cả các khóa (key) của đối tượng obj. Trong trường hợp này, nó trả về một mảng chứa tất cả các khóa của đối tượng addNewUserFormData.
+- .map((key) => ...)
+.map(callback): Phương thức map của mảng gọi hàm callback cho mỗi phần tử trong mảng và trả về một mảng mới chứa kết quả của từng lời gọi hàm callback. Trong trường hợp này, callback là một hàm mũi tên (key) => ....
+- addNewUserFormData[key].trim() !== ''
+- addNewUserFormData[key]: Lấy giá trị của thuộc tính có khóa là key từ đối tượng addNewUserFormData.
+- .trim(): Phương thức trim loại bỏ khoảng trắng từ đầu và cuối của chuỗi.
+- !== '': Kiểm tra xem chuỗi đã được trim có khác rỗng hay không. Nếu khác rỗng, biểu thức này sẽ trả về true, ngược lại trả về false.
+
+# Kết Quả
+- Hàm này sẽ trả về một mảng các giá trị boolean. Mỗi phần tử trong mảng tương ứng với một khóa trong đối tượng addNewUserFormData. Nếu giá trị của thuộc tính đó không phải là chuỗi rỗng sau khi trim, giá trị tương ứng trong mảng sẽ là true, ngược lại sẽ là false.
+
+# Ví Dụ
+- Giả sử bạn có đối tượng addNewUserFormData như sau:
+
+```jsx
+const addNewUserFormData = {
+    username: ' john_doe ',
+    email: 'john@example.com',
+    password: ' ',
+    confirmPassword: 'password123'
+};
+```
+
+- Khi gọi đoạn mã trên
+```jsx
+const result = Object.keys(addNewUserFormData).map((key) => addNewUserFormData[key].trim() !== '');
+console.log(result); // [true, true, false, true]
+```
+
+## Sử Dụng Trong Thực Tế
+- Nếu mục tiêu của bạn là kiểm tra xem tất cả các trường trong addNewUserFormData có giá trị không rỗng hay không, bạn có thể sử dụng phương thức every:
+
+```jsx
+const allFieldsFilled = Object.keys(addNewUserFormData).every((key) => addNewUserFormData[key].trim() !== '');
+console.log(allFieldsFilled); // false
+```
+
+- .every(callback): Phương thức every kiểm tra xem tất cả các phần tử trong mảng có thỏa mãn điều kiện của callback hay không. Nó trả về true nếu tất cả phần tử thỏa mãn, ngược lại trả về false.
+- Trong trường hợp này, allFieldsFilled sẽ là false vì không phải tất cả các trường đều có giá trị không rỗng.
+- Hàm handleSaveButtonValid mà bạn cung cấp sẽ kiểm tra từng giá trị trong đối tượng addNewUserFormData để xem liệu chúng có phải là chuỗi không rỗng sau khi đã được trim hay không. Tuy nhiên, hàm hiện tại trả về một mảng các giá trị boolean, không phải một giá trị boolean tổng hợp để xác định xem tất cả các trường đều hợp lệ hay không.
+- Nếu mục tiêu của bạn là kiểm tra xem tất cả các trường trong addNewUserFormData đều có giá trị không rỗng, bạn nên sửa hàm này để trả về một giá trị boolean duy nhất. Dưới đây là cách sửa đổi hàm handleSaveButtonValid để làm điều đó:
+
+```jsx
+const handleSaveButtonValid = () => {
+    return Object.keys(addNewUserFormData).every((key) => addNewUserFormData[key].trim() !== '');
+};
+```
+
+# Giải Thích
+- Object.keys(addNewUserFormData): Lấy tất cả các khóa của đối tượng addNewUserFormData và trả về một mảng chứa các khóa này.
+- .every((key) => addNewUserFormData[key].trim() !== ''): Kiểm tra xem tất cả các giá trị của các khóa trong đối tượng addNewUserFormData có phải là chuỗi không rỗng sau khi được trim hay không.
+- addNewUserFormData[key]: Lấy giá trị tương ứng với khóa key.
+- .trim() !== '': Loại bỏ khoảng trắng từ đầu và cuối của chuỗi và kiểm tra xem chuỗi có rỗng hay không. Nếu chuỗi không rỗng, điều kiện này trả về true.
+
+# Ví Dụ
+- Giả sử bạn có đối tượng addNewUserFormData như sau:
+
+```jsx
+const addNewUserFormData = {
+    username: ' john_doe ',
+    email: 'john@example.com',
+    password: ' ',
+    confirmPassword: 'password123'
+};
+```
+
+- Khi gọi hàm handleSaveButtonValid:
+
+```jsx
+const isValid = handleSaveButtonValid();
+console.log(isValid); // false
+```
+
+- Trong trường hợp này, isValid sẽ là false vì trường password chứa chuỗi rỗng sau khi trim.
+
+## Tích Hợp Vào Logic Ứng Dụng
+- Bạn có thể sử dụng hàm handleSaveButtonValid để kiểm tra điều kiện trước khi cho phép người dùng lưu dữ liệu. Ví dụ, bạn có thể sử dụng hàm này để vô hiệu hóa nút lưu nếu bất kỳ trường nào trống:
+
+```jsx
+<button disabled={!handleSaveButtonValid()}>Save</button>
+```
+
+- Nút "Save" sẽ bị vô hiệu hóa nếu handleSaveButtonValid trả về false.
+
+## Kết Luận
+- Hàm sửa đổi handleSaveButtonValid sẽ kiểm tra xem tất cả các trường trong addNewUserFormData có giá trị không rỗng sau khi trim hay không, và trả về một giá trị boolean duy nhất, giúp bạn dễ dàng xác định điều kiện hợp lệ để cho phép lưu dữ liệu.
+
+### Sửa lại thẻ div thành form
+
+- Ban đầu
+```jsx
+<div className="grid gap-4 py-4">
+    {
+        addNewFormControls.map((controlItem) => (
+            <div className="mb-5" key={controlItem.name}>
+                <Label htmlFor={controlItem.name} className="text-right">
+                    {controlItem.label}
+                </Label>
+                <Input
+                    id={controlItem.name}
+                    name={controlItem.name}
+                    placeholder={controlItem.placeholder}
+                    className="col-span-3"
+                    type={controlItem.type}
+                    value={addNewUserFormData[controlItem.name]}
+                    onChange={(event) => 
+                        setAddNewUserFormData({
+                            ...addNewUserFormData,
+                            [controlItem.name]: event.target.value
+                        })
+                    }
+                />
+            </div>
+        ))
+    }
+</div>
+```
+
+- Lúc sau
+
+```jsx
+<form action={handleAddNewUserAction} className="grid gap-4 py-4">
+    {
+        addNewFormControls.map((controlItem) => (
+            <div className="mb-5" key={controlItem.name}>
+                <Label htmlFor={controlItem.name} className="text-right">
+                    {controlItem.label}
+                </Label>
+                <Input
+                    id={controlItem.name}
+                    name={controlItem.name}
+                    placeholder={controlItem.placeholder}
+                    className="col-span-3"
+                    type={controlItem.type}
+                    value={addNewUserFormData[controlItem.name]}
+                    onChange={(event) => 
+                        setAddNewUserFormData({
+                            ...addNewUserFormData,
+                            [controlItem.name]: event.target.value
+                        })
+                    }
+                />
+            </div>
+        ))
+    }
+</form>
+```
+
+- Cho thẻ DialogFooter để có thể dùng hàm action trong thẻ form
+
+```jsx
+<form action={handleAddNewUserAction} className="grid gap-4 py-4">
+    {
+        addNewFormControls.map((controlItem) => (
+            <div className="mb-5" key={controlItem.name}>
+                <Label htmlFor={controlItem.name} className="text-right">
+                    {controlItem.label}
+                </Label>
+                <Input
+                    id={controlItem.name}
+                    name={controlItem.name}
+                                        placeholder={controlItem.placeholder}
+                    className="col-span-3"
+                    type={controlItem.type}
+                    value={addNewUserFormData[controlItem.name]}
+                    onChange={(event) => 
+                        setAddNewUserFormData({
+                            ...addNewUserFormData,
+                            [controlItem.name]: event.target.value
+                        })
+                    }
+                />
+            </div>
+        ))
+    }
+    <DialogFooter>
+        <Button 
+            type="submit" 
+            className="disabled:opacity-55 w-full" 
+            disabled={!handleSaveButtonValid()}
+        >
+            Save
+        </Button>
+    </DialogFooter>
+</form>
 ```

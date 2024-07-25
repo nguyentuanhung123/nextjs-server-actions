@@ -21,7 +21,7 @@ const AddNewUser = () => {
     // const [openPopup, setOpenPopup] = useState(false);
     // const [addNewUserFormData, setAddNewUserFormData] = useState(addNewUserFormInitialState);
 
-    console.log("addNewUserFormData", addNewUserFormData);
+    // console.log("addNewUserFormData", addNewUserFormData);
 
     /**
      * Kiểm tra các trường trong addNewUserFormData có giá trị
@@ -38,10 +38,12 @@ const AddNewUser = () => {
             currentEditedID !== null 
                 ? await editUserAction(currentEditedID, addNewUserFormData, '/user-management') 
                 : await addNewUserAction(addNewUserFormData, '/user-management');
-        console.log(result);
-        setOpenPopup(false);
-        setAddNewUserFormData(addNewUserFormInitialState);
-        setCurrentEditedID(null)
+        // console.log(result);
+        if(result?.success) {
+            setOpenPopup(false);
+            setAddNewUserFormData(addNewUserFormInitialState);
+            setCurrentEditedID(null)
+        }
     }
 
     return (

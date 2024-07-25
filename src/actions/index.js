@@ -69,3 +69,29 @@ export async function fetchUsersAction() {
 // edit a user action
 
 // delete a user action
+export async function deleteUserAction(currentUserId, pathToRevalidate) {
+    await connectToDB();
+    try {
+        const deletedUser = await User.findOneAndDelete({ _id: currentUserId });
+
+        if(deletedUser) {
+            revalidatePath(pathToRevalidate);
+            return {
+                success: true,  
+                message: "User deleted successfully"
+            }
+        } else {
+            return {
+                success: false,
+                message: 'Not able perform detele operation! Please try again later.'
+            }
+        }
+    }
+    catch (error) {
+        console.log(error);
+        return {
+            success: false,
+            message: 'Some error occured. Please try again.'
+        }
+    }
+}

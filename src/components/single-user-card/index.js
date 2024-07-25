@@ -10,6 +10,8 @@ import {
   } from "@/components/ui/card"
 import { Button } from "../ui/button"
 import { deleteUserAction } from "@/actions"
+import { useContext } from "react"
+import { UserContext } from "@/context"
 
 /**
  * Component này được sử dụng trong UserManagement
@@ -17,9 +19,22 @@ import { deleteUserAction } from "@/actions"
 
 const SingleUserCard = ({ user }) => {
 
+    const { setOpenPopup, setAddNewUserFormData, setCurrentEditedID } = useContext(UserContext);
+
     const handleDelete = async (getCurrentUserID) => {
         const result = await deleteUserAction(getCurrentUserID, '/user-management');
         console.log(result);
+    }
+
+    const handleEdit = (getCurrentUser) => {
+        setOpenPopup(true)
+        setAddNewUserFormData({
+            firstName: getCurrentUser?.firstName,
+            lastName : getCurrentUser?.lastName,
+            email: getCurrentUser?.email,
+            address: getCurrentUser?.address
+        })
+        setCurrentEditedID(getCurrentUser?._id)
     }
 
     return (
@@ -32,7 +47,7 @@ const SingleUserCard = ({ user }) => {
                 <p>{user?.address}</p>
             </CardContent>
             <CardFooter className="flex justify-between">
-                <Button>Edit</Button>
+                <Button onClick={() => handleEdit(user)}>Edit</Button>
                 <Button onClick={() => handleDelete(user?._id)}>Delete</Button>
             </CardFooter>
         </Card>

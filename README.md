@@ -756,3 +756,95 @@ export async function addNewUserAction(formData, pathToRevalidate) {
     }
 }
 ```
+
+### Sửa thông tin 1 user 
+
+- B1: Tạo context
+
+```jsx
+import { createContext } from "react";
+
+export const UserContext = createContext(null);
+
+export default function UserState({ children }) {
+
+    const [currentEditedID, setCurrentEditedID] = useState(null);
+
+    return <UserContext.Provider value={{ currentEditedID, setCurrentEditedID }}>
+        {children}
+    </UserContext.Provider>
+}
+```
+
+- B2: Tạo 1 thư mục mới là common-layout (trong thư mục component)
+
+```jsx
+'use client'
+
+import UserState from "@/context"
+
+export default function CommonLayout({ children }) {
+    return (
+        <UserState>{children}</UserState>
+    )
+}
+
+```
+
+- B3: Sửa lại file layout.js
+
+```jsx
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <CommonLayout>{children}</CommonLayout>
+      </body>
+    </html>
+  );
+}
+```
+
+- B4: Xóa 2 state ở add-new-user và chuyển chúng vào context
+
+```jsx
+const [openPopup, setOpenPopup] = useState(false);
+const [addNewUserFormData, setAddNewUserFormData] = useState(addNewUserFormInitialState);
+```
+
+- B5: Lấy các state trong context
+
+```jsx
+const { openPopup, setOpenPopup, addNewUserFormData, setAddNewUserFormData } = useContext(UserContext);
+```
+
+### Bug nhỏ : Sau khi thêm chức năng sửa thì sau khi sửa thành công thì currentEditedID vẫn còn tồn tài ở Context nên sau khi ta bấm Add New User thì nó vẫn sẽ chỉ thực hiện công việc edit mà không phải công việc thêm
+
+- Ban đầu
+
+```jsx
+const handleAddNewUserAction = async () => {
+    const result = 
+        currentEditedID !== null 
+            ? await editUserAction(currentEditedID, addNewUserFormData, '/user-management') 
+            : await addNewUserAction(addNewUserFormData, '/user-management');
+    console.log(result);
+    setOpenPopup(false);
+    setAddNewUserFormData(addNewUserFormInitialState);
+}
+```
+
+- Sau khi sửa
+
+```jsx
+const handleAddNewUserAction = async () => {
+    const result = 
+        currentEditedID !== null 
+            ? await editUserAction(currentEditedID, addNewUserFormData, '/user-management') 
+            : await addNewUserAction(addNewUserFormData, '/user-management');
+    console.log(result);
+    setOpenPopup(false);
+    setAddNewUserFormData(addNewUserFormInitialState);
+    setCurrentEditedID(null) // thêm cái này
+}
+```
